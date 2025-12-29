@@ -10,6 +10,9 @@ frontend/node_modules/
 # Maven
 target/
 
+# Database
+data/
+
 # Logs
 *.log
 
