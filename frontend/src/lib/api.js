@@ -3,7 +3,8 @@
  * Currently using mock data - will connect to backend in next phase.
  */
 
-const API_BASE = '/api';
+// TODO: Uncomment when connecting to backend
+// const API_BASE = '/api';
 
 /**
  * Mock data for development without backend connection.

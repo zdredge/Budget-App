@@ -52,7 +52,6 @@
 </script>
 
 <div class="expense-list">
-  <h3>Recent Expenses</h3>
 
   {#if expenses.length === 0}
     <div class="empty-state">
@@ -100,12 +99,26 @@
     border-radius: 12px;
     padding: 1rem;
     border: 1px solid #e5e7eb;
+    height: 100%;
+    overflow-y: auto;
   }
 
-  .expense-list h3 {
-    margin: 0 0 1rem 0;
-    font-size: 1rem;
-    color: #374151;
+  .expense-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .expense-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .expense-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  .expense-list::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
   }
 
   .empty-state {
@@ -222,8 +235,16 @@
       border-color: #374151;
     }
 
-    .expense-list h3 {
-      color: #f3f4f6;
+    .expense-list::-webkit-scrollbar-track {
+      background: #374151;
+    }
+
+    .expense-list::-webkit-scrollbar-thumb {
+      background: #4b5563;
+    }
+
+    .expense-list::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
     }
 
     .empty-state {

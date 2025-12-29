@@ -21,6 +21,28 @@
   let loading = $state(true);
   let showExpenseForm = $state(false);
 
+  // Element references for height matching
+  let chartColumnEl = $state(null);
+  let expenseContainerHeight = $state('auto');
+
+  /**
+   * Updates the expense container height to match the chart column.
+   */
+  function updateExpenseContainerHeight() {
+    if (chartColumnEl) {
+      const summaryCardHeight = chartColumnEl.querySelector('.summary-card')?.offsetHeight || 0;
+      expenseContainerHeight = `${summaryCardHeight}px`;
+    }
+  }
+
+  // Update height after data loads
+  $effect(() => {
+    if (summary && chartColumnEl) {
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(updateExpenseContainerHeight, 0);
+    }
+  });
+
   /**
    * Gets the current month in YYYY-MM format.
    */
@@ -129,40 +151,48 @@
   {:else if summary}
     <!-- Main Content -->
     <div class="dashboard-content">
-      <!-- Left Column: Pie Chart & Summary -->
-      <div class="left-column">
-        <h2>Overall Spending</h2>
-        <div class="summary-card">
-          <PieChart
-            categoryBreakdown={summary.categoryBreakdown}
-            totalSpent={summary.totalSpent}
-            totalLimit={summary.totalLimit}
-          />
+      <!-- Top Row: Pie Chart & Expense List -->
+      <div class="top-row">
+        <!-- Left: Pie Chart & Summary -->
+        <div class="chart-column" bind:this={chartColumnEl}>
+          <h2>Overall Spending</h2>
+          <div class="summary-card">
+            <PieChart
+              categoryBreakdown={summary.categoryBreakdown}
+              totalSpent={summary.totalSpent}
+              totalLimit={summary.totalLimit}
+            />
 
-          <div class="budget-summary" class:warning={getOverallStatus() === 'warning'} class:exceeded={getOverallStatus() === 'exceeded'}>
-            <div class="summary-row">
-              <span>Total Spent</span>
-              <span class="amount">{formatCurrency(summary.totalSpent)}</span>
-            </div>
-            <div class="summary-row">
-              <span>Total Budget</span>
-              <span class="amount">{formatCurrency(summary.totalLimit)}</span>
-            </div>
-            <div class="summary-row remaining">
-              <span>Remaining</span>
-              <span class="amount" class:negative={summary.totalSpent > summary.totalLimit}>
-                {formatCurrency(summary.totalLimit - summary.totalSpent)}
-              </span>
+            <div class="budget-summary" class:warning={getOverallStatus() === 'warning'} class:exceeded={getOverallStatus() === 'exceeded'}>
+              <div class="summary-row">
+                <span>Total Spent</span>
+                <span class="amount">{formatCurrency(summary.totalSpent)}</span>
+              </div>
+              <div class="summary-row">
+                <span>Total Budget</span>
+                <span class="amount">{formatCurrency(summary.totalLimit)}</span>
+              </div>
+              <div class="summary-row remaining">
+                <span>Remaining</span>
+                <span class="amount" class:negative={summary.totalSpent > summary.totalLimit}>
+                  {formatCurrency(summary.totalLimit - summary.totalSpent)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Expense List -->
-        <ExpenseList {expenses} onDelete={handleExpenseDelete} />
+        <!-- Right: Expense List -->
+        <div class="expenses-column">
+          <h2>Recent Expenses</h2>
+          <div class="expense-list-container" style="height: {expenseContainerHeight};">
+            <ExpenseList {expenses} onDelete={handleExpenseDelete} />
+          </div>
+        </div>
       </div>
 
-      <!-- Right Column: Category Cards -->
-      <div class="right-column">
+      <!-- Bottom Row: Categories (full width) -->
+      <div class="categories-section">
         <h2>Categories</h2>
         <div class="category-grid">
           {#each summary.categoryBreakdown as category}
@@ -233,22 +263,43 @@
   }
 
   .dashboard-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
   }
 
-  .left-column {
+  .top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .chart-column {
     display: flex;
     flex-direction: column;
   }
 
-  .left-column h2 {
-    margin: 0 0 1rem 0;
+  .expenses-column {
+    display: flex;
+    flex-direction: column;
   }
 
-  .left-column .summary-card {
-    margin-bottom: 1.5rem;
+  .chart-column h2,
+  .expenses-column h2,
+  .categories-section h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.125rem;
+    color: #374151;
+  }
+
+  .expense-list-container {
+    overflow: hidden;
+  }
+
+
+  .categories-section {
+    width: 100%;
   }
 
   .summary-card {
@@ -300,16 +351,9 @@
     color: #ef4444;
   }
 
-  .right-column h2,
-  .left-column h2 {
-    margin: 0 0 1rem 0;
-    font-size: 1.125rem;
-    color: #374151;
-  }
-
   .category-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
   }
 
@@ -338,13 +382,17 @@
   }
 
   @media (max-width: 768px) {
-    .dashboard-content {
+    .top-row {
       grid-template-columns: 1fr;
     }
 
     .dashboard-header {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .category-grid {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -370,8 +418,9 @@
       border-top-color: #374151;
     }
 
-    .right-column h2,
-    .left-column h2 {
+    .chart-column h2,
+    .expenses-column h2,
+    .categories-section h2 {
       color: #f3f4f6;
     }
   }
