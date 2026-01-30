@@ -3,7 +3,17 @@
 A full-stack budget tracking application built with:
 - **Backend:** Java 21 + Spring Boot 3.4
 - **Frontend:** Svelte 5 + Vite
-- **Database:** H2 (in-memory for development)
+- **Database:** H2 (file-based for persistence)
+
+## Features
+
+- **Dashboard** - Overview of monthly spending with interactive pie chart
+- **Expense Tracking** - Add, edit, and delete expenses with date and category
+- **Category Management** - Custom categories with configurable budget limits
+- **Budget Visualization** - Pie chart showing spending breakdown by category
+- **Monthly View** - Filter expenses by month with month selector
+- **Budget Warnings** - Visual indicators when approaching (orange) or exceeding (red) category limits
+- **Scrollable Expense List** - Date-sorted expenses in a scrollable container
 
 ## Prerequisites
 
@@ -16,21 +26,36 @@ A full-stack budget tracking application built with:
 
 ```
 Budget/
-├── src/                    # Spring Boot backend
+├── src/                          # Spring Boot backend
 │   ├── main/
 │   │   ├── java/com/budget/
 │   │   │   ├── BudgetApplication.java
-│   │   │   ├── config/
-│   │   │   └── controller/
+│   │   │   ├── config/           # CORS configuration
+│   │   │   ├── controller/       # REST controllers
+│   │   │   ├── dto/              # Data Transfer Objects
+│   │   │   ├── model/            # Entity classes
+│   │   │   └── repository/       # JPA repositories
 │   │   └── resources/
-│   │       └── application.yml
-│   └── test/
-├── frontend/               # Svelte frontend
+│   │       ├── application.yml
+│   │       └── data.sql          # Seed data for default categories
+│   └── test/                     # Unit tests
+├── frontend/                     # Svelte frontend
 │   ├── src/
 │   │   ├── App.svelte
-│   │   └── main.js
+│   │   ├── main.js
+│   │   ├── components/
+│   │   │   ├── Dashboard.svelte      # Main dashboard layout
+│   │   │   ├── PieChart.svelte       # Spending visualization
+│   │   │   ├── ExpenseList.svelte    # Scrollable expense list
+│   │   │   ├── ExpenseForm.svelte    # Add/edit expense form
+│   │   │   ├── CategoryCard.svelte   # Category display with progress
+│   │   │   └── MonthSelector.svelte  # Month navigation
+│   │   └── lib/
+│   │       └── api.js            # API client functions
 │   ├── package.json
 │   └── vite.config.js
+├── data/                         # Persistent H2 database files
+│   └── budgetdb.mv.db
 └── pom.xml
 ```
 
@@ -62,6 +87,13 @@ mvn clean package
 java -jar target/budget-app-1.0-SNAPSHOT.jar
 ```
 
+### Run Tests
+
+```bash
+# Run all tests
+mvn test
+```
+
 ### Development Mode (Optional - For Frontend Hot Reload)
 
 If you want hot-reload during frontend development, you can run both separately:
@@ -81,19 +113,52 @@ Then access the app at `http://localhost:5173` (Vite dev server with proxy to ba
 
 - Application: http://localhost:8080
 - Health check: http://localhost:8080/api/health
-- H2 Console: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:budgetdb`)
+- H2 Console: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:file:./data/budgetdb`)
 
 ## API Endpoints
 
+### Health
 | Method | Endpoint      | Description       |
 |--------|---------------|-------------------|
 | GET    | /api/health   | Health check      |
 
+### Categories
+| Method | Endpoint            | Description              |
+|--------|---------------------|--------------------------|
+| GET    | /api/categories     | Get all categories       |
+| GET    | /api/categories/:id | Get category by ID       |
+| POST   | /api/categories     | Create a new category    |
+| PUT    | /api/categories/:id | Update a category        |
+| DELETE | /api/categories/:id | Delete a category        |
+
+### Expenses
+| Method | Endpoint          | Description                          |
+|--------|-------------------|--------------------------------------|
+| GET    | /api/expenses     | Get expenses (optional: year, month) |
+| GET    | /api/expenses/:id | Get expense by ID                    |
+| POST   | /api/expenses     | Create a new expense                 |
+| PUT    | /api/expenses/:id | Update an expense                    |
+| DELETE | /api/expenses/:id | Delete an expense                    |
+
+### Summary
+| Method | Endpoint     | Description                               |
+|--------|--------------|-------------------------------------------|
+| GET    | /api/summary | Get monthly summary with category breakdown |
+
+## Default Categories
+
+The application comes with the following default categories:
+- Groceries
+- Rent
+- Utilities
+- Miscellaneous
+- Personal
+
 ## Future Enhancements
 
-- [ ] Add budget entity and CRUD operations
-- [ ] Add expense tracking
-- [ ] Add category management
-- [ ] Add charts and reports
+- [ ] Income tracking
+- [ ] Multi-user support
 - [ ] Configure for Azure deployment
+- [ ] Export reports (CSV/PDF)
+- [ ] Recurring expenses
 
